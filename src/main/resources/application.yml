@@ -1,0 +1,30 @@
+server:
+  port: 8080
+
+
+spring:
+  jackson:
+    time-zone: Asia/Seoul
+
+  datasource:
+    url: ${MYSQL_URL}
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui
+    config-url: /wishlist-service/v3/api-docs/swagger-config
+    url: /wishlist-service/v3/api-docs
