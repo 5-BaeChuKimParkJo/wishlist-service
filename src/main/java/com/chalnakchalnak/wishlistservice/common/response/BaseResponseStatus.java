@@ -24,6 +24,7 @@ public enum BaseResponseStatus {
     NOT_FOUND(HttpStatus.NOT_FOUND, 5101, "요청한 리소스를 찾을 수 없습니다."),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, 5102, "허용되지 않은 HTTP 메서드입니다."),
     INVALID_INPUT(HttpStatus.BAD_REQUEST, 5103, "유효하지 입력입니다"),
+    INVALID_WISHLIST_ACTION(HttpStatus.BAD_REQUEST, 5104, "잘못된 찜 액션입니다. 'ADD' 또는 'REMOVE' 중 하나를 선택해주세요."),
 
     /**
      * 3200~3299 : 찜 등록/해제 관련 에러

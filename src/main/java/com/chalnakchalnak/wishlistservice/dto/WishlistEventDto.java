@@ -1,20 +1,19 @@
 package com.chalnakchalnak.wishlistservice.dto;
 
+import com.chalnakchalnak.wishlistservice.dto.enums.WishlistAction;
 import com.chalnakchalnak.wishlistservice.dto.in.AddWishlistRequestDto;
-import lombok.AllArgsConstructor;
+import com.chalnakchalnak.wishlistservice.dto.in.RemoveWishlistRequestDto;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 public class WishlistEventDto {
-
     private String memberUuid;
     private String postUuid;
-    private String action; // "ADD" or "REMOVE"
+    private WishlistAction action;
 
     @Builder
-    public WishlistEventDto(String memberUuid, String postUuid, String action) {
+    public WishlistEventDto(String memberUuid, String postUuid, WishlistAction action) {
         this.memberUuid = memberUuid;
         this.postUuid = postUuid;
         this.action = action;
@@ -24,15 +23,15 @@ public class WishlistEventDto {
         return WishlistEventDto.builder()
                 .memberUuid(addWishlistRequestDto.getMemberUuid())
                 .postUuid(addWishlistRequestDto.getPostUuid())
-                .action("ADD")
+                .action(WishlistAction.ADD)
                 .build();
     }
 
-    public static WishlistEventDto fromRemoveRequest(String memberUuid, String postUuid) {
+    public static WishlistEventDto fromRemoveRequest(RemoveWishlistRequestDto removeWishlistRequestDto) {
         return WishlistEventDto.builder()
-                .memberUuid(memberUuid)
-                .postUuid(postUuid)
-                .action("REMOVE")
+                .memberUuid(removeWishlistRequestDto.getMemberUuid())
+                .postUuid(removeWishlistRequestDto.getPostUuid())
+                .action(WishlistAction.REMOVE)
                 .build();
     }
 }

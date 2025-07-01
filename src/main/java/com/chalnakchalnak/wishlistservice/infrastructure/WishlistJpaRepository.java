@@ -9,5 +9,7 @@ import java.util.Optional;
 public interface WishlistJpaRepository extends JpaRepository<Wishlist, Long> {
 
     boolean existsByMemberUuidAndPostUuid(String memberUuid, String postUuid);
-
+    Optional<Wishlist> findByMemberUuidAndPostUuid(String memberUuid, String postUuid);
+    List<Wishlist> findAllByMemberUuidOrderByCreatedAtDesc(String memberUuid);
+    long countByMemberUuid(String memberUuid);
 }

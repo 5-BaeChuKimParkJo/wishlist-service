@@ -4,15 +4,17 @@ import com.chalnakchalnak.wishlistservice.common.exception.BaseException;
 import com.chalnakchalnak.wishlistservice.common.response.BaseResponseStatus;
 import com.chalnakchalnak.wishlistservice.domain.Wishlist;
 import com.chalnakchalnak.wishlistservice.dto.in.AddWishlistRequestDto;
+import com.chalnakchalnak.wishlistservice.dto.in.CheckPostInWishlistRequestDto;
+import com.chalnakchalnak.wishlistservice.dto.in.RemoveWishlistRequestDto;
 import com.chalnakchalnak.wishlistservice.infrastructure.WishlistJpaRepository;
+import com.chalnakchalnak.wishlistservice.infrastructure.WishlistRedisTemplate;
+import com.chalnakchalnak.wishlistservice.vo.in.GetWishlistRequestDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +23,7 @@ public class WishlistServiceImpl implements WishlistService {
     private static final int MAX_WISHLIST_COUNT = 100;
 
     private final WishlistJpaRepository wishlistJpaRepository;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final WishlistRedisTemplate wishlistRedisTemplate;
     private final WishlistEventProducer wishlistEventProducer;
 
     @Transactional
@@ -30,37 +32,87 @@ public class WishlistServiceImpl implements WishlistService {
         final String memberUuid = addWishlistRequestDto.getMemberUuid();
         final String postUuid = addWishlistRequestDto.getPostUuid();
 
-        String redisKey = getRedisKey(memberUuid);
+        if (!wishlistRedisTemplate.hasKey(memberUuid)) {
+            syncWishlistFromDbToRedis(memberUuid);
+        }
 
-        // 최대 100개 제한
-        Long currentSize = redisTemplate.opsForSet().size(redisKey);
-        if (currentSize == null || currentSize == 0) {
+        Long currentSize = wishlistRedisTemplate.getCount(memberUuid);
+        if (currentSize == null) {
             currentSize = wishlistJpaRepository.countByMemberUuid(memberUuid);
         }
         if (currentSize >= MAX_WISHLIST_COUNT) {
             throw new BaseException(BaseResponseStatus.WISHLIST_LIMIT_EXCEEDED);
         }
 
-        // 중복 체크
-        if (redisTemplate.opsForSet().isMember(redisKey, postUuid) ||
+        if (wishlistRedisTemplate.checkedWishlist(memberUuid, postUuid) ||
                 wishlistJpaRepository.existsByMemberUuidAndPostUuid(memberUuid, postUuid)) {
             throw new BaseException(BaseResponseStatus.ALREADY_WISHLISTED);
         }
 
         wishlistJpaRepository.save(addWishlistRequestDto.toEntity());
-        redisTemplate.opsForSet().add(redisKey, postUuid);
-
+        wishlistRedisTemplate.addToWishlist(memberUuid, postUuid);
         wishlistEventProducer.publishAddWishlistEvent(addWishlistRequestDto);
     }
 
+    @Transactional
+    @Override
+    public void removeWishlist(RemoveWishlistRequestDto removeWishlistRequestDto) {
+        final String memberUuid = removeWishlistRequestDto.getMemberUuid();
+        final String postUuid = removeWishlistRequestDto.getPostUuid();
 
-    private String getRedisKey(String memberUuid) {
-        StringBuilder key = new StringBuilder();
-        key.append("wishlist:member:")
-                .append(memberUuid);
+        final Wishlist wishlist = wishlistJpaRepository.findByMemberUuidAndPostUuid(memberUuid, postUuid)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_IN_WISHLIST));
 
-        final String result = key.toString();
+        wishlistJpaRepository.delete(wishlist);
+        wishlistRedisTemplate.removeFromWishlist(memberUuid, postUuid);
+        wishlistEventProducer.publishRemoveWishlistEvent(removeWishlistRequestDto);
+    }
 
-        return result;
+    @Override
+    public boolean checkedWishlist(CheckPostInWishlistRequestDto checkPostInWishlistRequestDto) {
+        final String memberUuid = checkPostInWishlistRequestDto.getMemberUuid();
+        final String postUuid = checkPostInWishlistRequestDto.getPostUuid();
+
+        if (!wishlistRedisTemplate.hasKey(memberUuid)) {
+            syncWishlistFromDbToRedis(memberUuid);
+        }
+
+        if (wishlistRedisTemplate.checkedWishlist(memberUuid, postUuid)) {
+            return true;
+        }
+
+        final boolean checked = wishlistJpaRepository.existsByMemberUuidAndPostUuid(memberUuid, postUuid);
+        if (checked) {
+            wishlistRedisTemplate.addToWishlist(memberUuid, postUuid);
+        }
+        return checked;
+    }
+
+    @Override
+    public List<String> getWishlist(GetWishlistRequestDto getWishlistRequestDto) {
+        final String memberUuid = getWishlistRequestDto.getMemberUuid();
+        final List<String> cached = wishlistRedisTemplate.getWishlist(memberUuid);
+
+        if (!cached.isEmpty()) {
+            return cached;
+        }
+        return syncWishlistFromDbToRedis(memberUuid);
+    }
+
+    /**
+     * DB 기준으로 Redis를 완전히 초기화하고 최신순 List 반환
+     */
+    private List<String> syncWishlistFromDbToRedis(String memberUuid) {
+        final List<Wishlist> wishlist = wishlistJpaRepository.findAllByMemberUuidOrderByCreatedAtDesc(memberUuid);
+        if (wishlist.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        final List<String> postUuids = wishlist.stream()
+                .map(Wishlist::getPostUuid)
+                .toList();
+
+        wishlistRedisTemplate.syncFromDb(memberUuid, postUuids);
+        return postUuids;
     }
 }

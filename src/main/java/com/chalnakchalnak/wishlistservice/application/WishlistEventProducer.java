@@ -4,6 +4,7 @@ import com.chalnakchalnak.wishlistservice.common.exception.BaseException;
 import com.chalnakchalnak.wishlistservice.common.response.BaseResponseStatus;
 import com.chalnakchalnak.wishlistservice.dto.WishlistEventDto;
 import com.chalnakchalnak.wishlistservice.dto.in.AddWishlistRequestDto;
+import com.chalnakchalnak.wishlistservice.dto.in.RemoveWishlistRequestDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,16 @@ public class WishlistEventProducer {
 
         kafkaTemplate.send(TOPIC_NAME, event.getPostUuid(), payload);
     }
+
+    public void publishRemoveWishlistEvent(RemoveWishlistRequestDto removeWishlistRequestDto) {
+        final WishlistEventDto event = WishlistEventDto.fromRemoveRequest(removeWishlistRequestDto);
+
+        final String payload = toJson(event);
+
+        kafkaTemplate.send(TOPIC_NAME, event.getPostUuid(), payload);
+    }
+
+
 
     public String toJson(WishlistEventDto wishlistEventDto) {
         try {
