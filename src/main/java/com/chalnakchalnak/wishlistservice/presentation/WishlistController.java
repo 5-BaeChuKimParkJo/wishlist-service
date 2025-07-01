@@ -8,6 +8,7 @@ import com.chalnakchalnak.wishlistservice.vo.in.AddWishlistRequestVo;
 import com.chalnakchalnak.wishlistservice.vo.in.CheckPostInWishlistRequestVo;
 import com.chalnakchalnak.wishlistservice.vo.in.GetWishlistRequestDto;
 import com.chalnakchalnak.wishlistservice.vo.in.RemoveWishlistRequestVo;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ public class WishlistController {
 
     private final WishlistService wishlistService;
 
+    @Operation(summary = "Add Wishlist API", description = "게시글 찜 등록 API", tags = {"wishlist"})
     @PostMapping
     public void addWishlist(
             @RequestHeader("X-Member-UUID") String memberUuid,
@@ -29,6 +31,7 @@ public class WishlistController {
             wishlistService.addWishlist(AddWishlistRequestDto.from(addWishlistRequestVo, memberUuid));
     }
 
+    @Operation(summary = "Delete Wishlist API", description = "게시글 찜 등록 해제 API", tags = {"wishlist"})
     @DeleteMapping
     public void removeWishlist(
             @RequestHeader("X-Member-Uuid") String memberUuid,
@@ -37,6 +40,7 @@ public class WishlistController {
         wishlistService.removeWishlist(RemoveWishlistRequestDto.from(removeWishlistRequestVo, memberUuid));
     }
 
+    @Operation(summary = "Check Wishlist API", description = "게시글 찜 여부 확안 API", tags = {"wishlist"})
     @GetMapping("/check")
     public boolean isInWishlist(
             @RequestHeader("X-Member-Uuid") String memberUuid,
@@ -45,6 +49,7 @@ public class WishlistController {
         return wishlistService.checkedWishlist(CheckPostInWishlistRequestDto.from(checkPostInWishlistRequestVo, memberUuid));
     }
 
+    @Operation(summary = "Get Wishlist API", description = "게시글 찜 리스트 조회 API", tags = {"wishlist"})
     @GetMapping
     public List<String> getWishlist(
             @RequestHeader("X-Member-Uuid") String memberUuid
