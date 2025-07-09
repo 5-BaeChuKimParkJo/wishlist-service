@@ -6,7 +6,7 @@ import com.chalnakchalnak.wishlistservice.dto.in.CheckPostInWishlistRequestDto;
 import com.chalnakchalnak.wishlistservice.dto.in.RemoveWishlistRequestDto;
 import com.chalnakchalnak.wishlistservice.vo.in.AddWishlistRequestVo;
 import com.chalnakchalnak.wishlistservice.vo.in.CheckPostInWishlistRequestVo;
-import com.chalnakchalnak.wishlistservice.vo.in.GetWishlistRequestDto;
+import com.chalnakchalnak.wishlistservice.dto.in.GetWishlistRequestDto;
 import com.chalnakchalnak.wishlistservice.vo.in.RemoveWishlistRequestVo;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;

@@ -1,4 +1,4 @@
-package com.chalnakchalnak.wishlistservice.vo.in;
+package com.chalnakchalnak.wishlistservice.dto.in;
 
 import lombok.Builder;
 import lombok.Getter;
