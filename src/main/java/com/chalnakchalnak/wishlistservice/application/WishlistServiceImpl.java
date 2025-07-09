@@ -8,7 +8,7 @@ import com.chalnakchalnak.wishlistservice.dto.in.CheckPostInWishlistRequestDto;
 import com.chalnakchalnak.wishlistservice.dto.in.RemoveWishlistRequestDto;
 import com.chalnakchalnak.wishlistservice.infrastructure.WishlistJpaRepository;
 import com.chalnakchalnak.wishlistservice.infrastructure.WishlistRedisTemplate;
-import com.chalnakchalnak.wishlistservice.vo.in.GetWishlistRequestDto;
+import com.chalnakchalnak.wishlistservice.dto.in.GetWishlistRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
