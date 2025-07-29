@@ -20,6 +20,22 @@ spring:
       hibernate:
         format_sql: true
 
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVERS}
+    producer:
+      key-deserializer: org.apache.kafka.common.serialization.StringSerializer
+      value-deserializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: ${KAFKA_ACKS}
+      batch-size: 1280000
+      linger-ms: 500
+      buffer-memory: 67108864
+
 springdoc:
   api-docs:
     path: /v3/api-docs
